@@ -1,5 +1,8 @@
+import 'package:expense_app/models/category.model.dart';
 import 'package:expense_app/models/expense.model.dart';
+import 'package:expense_app/services/categories/categories.service.dart';
 import 'package:expense_app/services/expenses/expense.service.dart';
+import 'package:expense_app/shared/widgets/category_picker.dart';
 import 'package:expense_app/shared/widgets/date_picker.dart';
 import 'package:flutter/material.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
@@ -14,13 +17,19 @@ class AddExpenseScreen extends StatefulWidget {
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool isEditMode = false;
+  bool _isLoading = false;
   late Expense expense;
+  List<ExpenseCategory> expenseCategories = [];
   late ExpenseService _expenseService;
+  late ExpenseCategoryService _expenseCategoryService;
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   @override
   void initState() {
     super.initState();
     _expenseService = ExpenseService();
+    _expenseCategoryService = ExpenseCategoryService();
+    _isLoading = true;
+    _fetchExpenseCategories();
     if (widget.expense != null) {
       expense = widget.expense!;
       isEditMode = true;
@@ -36,6 +45,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.expense == null ? 'Add Expense' : 'Edit Expense'),
+        backgroundColor: Theme.of(context).primaryColorLight,
         actions: isEditMode
             ? [
                 IconButton(
@@ -48,13 +58,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: _buildForm(),
+        child: _isLoading
+            ? const Center(
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : _buildForm(),
       ),
       persistentFooterButtons: [
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(onPressed: () {}, child: const Text('Cancel')),
+            TextButton(
+                onPressed: () {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 if (_formkey.currentState!.validate()) {
@@ -142,6 +166,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     maxLines: null,
                     decoration: const InputDecoration(hintText: 'Note', border: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey, width: 1))),
                   )),
+              ExpenseCategoryPicker(
+                expenseCategories: expenseCategories,
+                selectedCategory: expenseCategories.firstWhere((element) => element.iconPoint == expense.categoryIcon),
+                onCategorySelected: (category) {
+                  expense.categoryIcon = category.iconPoint;
+                  expense.categoryId = category.id;
+                },
+              ),
             ],
           ),
         ));
@@ -166,13 +198,30 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               FilledButton(
                   onPressed: () async {
                     if (await _expenseService.deleteExpense(expense.id!)) {
-                      Navigator.of(ctx).pop();
-                      Navigator.of(context).pop(true);
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pop();
+                      }
+
+                      if (context.mounted) {
+                        Navigator.of(context).pop(true);
+                      }
                     }
                   },
                   child: const Text('Confirm'))
             ],
           );
         });
+  }
+
+  void _fetchExpenseCategories() async {
+    expenseCategories = await _expenseCategoryService.getCategories();
+    if (expenseCategories.isNotEmpty && expense.id == null) {
+      expense.categoryId = expenseCategories[0].id;
+      expense.categoryIcon = expenseCategories[0].iconPoint;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 }

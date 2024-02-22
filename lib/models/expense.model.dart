@@ -4,16 +4,7 @@ class Expense {
   DateTime? expenseDate;
   double? amount;
   int? categoryId;
+  String? categoryName;
+  int? categoryIcon;
   String? note;
-
-  Map<String, Object?> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'expenseDate': expenseDate.toString(),
-      'amount': amount,
-      'categoryId': categoryId,
-      'note': note,
-    };
-  }
 }

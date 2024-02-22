@@ -1,9 +1,7 @@
 import 'package:expense_app/models/category.model.dart';
-import 'package:expense_app/models/dtos/expense.dto.dart';
 import 'package:expense_app/models/dtos/expense_category.dto.dart';
-import 'package:expense_app/models/expense.model.dart';
 import 'package:expense_app/services/database/app_database.dart';
-import 'package:expense_app/utils/datetimeutils.dart';
+import 'package:expense_app/utils/date_extensions.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseCategoryService {
@@ -32,8 +30,8 @@ class ExpenseCategoryService {
     var expenseCategoryDTO = ExpenseCategoryDTO();
     expenseCategoryDTO.name = expenseCategory.name;
     expenseCategoryDTO.iconPoint = expenseCategory.iconPoint;
-    expenseCategoryDTO.createdOn = DateTimeUtils.getYYYMMDDHHmmssFormat(DateTime.now());
-    expenseCategoryDTO.updatedOn = DateTimeUtils.getYYYMMDDHHmmssFormat(DateTime.now());
+    expenseCategoryDTO.createdOn = DateTime.now().getYYYMMDDHHmmssFormat();
+    expenseCategoryDTO.updatedOn = DateTime.now().getYYYMMDDHHmmssFormat();
 
     return AppDatabase.insert<ExpenseCategoryDTO>(expenseCategoryDTO);
   }
@@ -43,15 +41,13 @@ class ExpenseCategoryService {
     expenseCategoryDTO.id = expenseCategory.id;
     expenseCategoryDTO.name = expenseCategory.name;
     expenseCategoryDTO.iconPoint = expenseCategory.iconPoint;
-    expenseCategoryDTO.updatedOn = DateTimeUtils.getYYYMMDDHHmmssFormat(DateTime.now());
+    expenseCategoryDTO.updatedOn = DateTime.now().getYYYMMDDHHmmssFormat();
 
     return AppDatabase.update<ExpenseCategoryDTO>(expenseCategoryDTO, whereQuery: "Id = ${expenseCategoryDTO.id}");
   }
 
   Future<List<ExpenseCategory>> getCategories() async {
     var expenseCategoriesMap = await AppDatabase.get('ExpenseCategory');
-    print(expenseCategoriesMap);
-    // print(expenseMap);
     var result = expenseCategoriesMap!.map((map) => ExpenseCategoryDTO.fromMap(map)).map((e) {
       var expenseCategory = ExpenseCategory();
       expenseCategory.id = e.id;

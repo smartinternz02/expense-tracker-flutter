@@ -1,7 +1,6 @@
 import 'package:expense_app/models/category.model.dart';
 import 'package:expense_app/services/categories/categories.service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class AddExpenseCategoryScreen extends StatefulWidget {
   final ExpenseCategory? expenseCategory;
@@ -14,7 +13,7 @@ class AddExpenseCategoryScreen extends StatefulWidget {
 class _AddExpenseCategoryScreenState extends State<AddExpenseCategoryScreen> {
   late ExpenseCategory category;
   bool isEditMode = false;
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   late IconData selectedIcon;
   late ExpenseCategoryService categoryService = ExpenseCategoryService();
@@ -35,6 +34,7 @@ class _AddExpenseCategoryScreenState extends State<AddExpenseCategoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(!isEditMode ? 'Add Category' : 'Edit Category'),
+        backgroundColor: Theme.of(context).primaryColorLight,
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -43,7 +43,9 @@ class _AddExpenseCategoryScreenState extends State<AddExpenseCategoryScreen> {
       persistentFooterButtons: [
         TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('Cancel')),
         FilledButton(
@@ -54,11 +56,15 @@ class _AddExpenseCategoryScreenState extends State<AddExpenseCategoryScreen> {
 
               if (!isEditMode) {
                 if (await categoryService.addCategory(category) > 0) {
-                  Navigator.of(context).pop(true);
+                  if (context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
                 }
               } else {
                 if (await categoryService.updateCategory(category)) {
-                  Navigator.of(context).pop(true);
+                  if (context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
                 }
               }
             },

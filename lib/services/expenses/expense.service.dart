@@ -1,14 +1,14 @@
 import 'package:expense_app/models/dtos/expense.dto.dart';
 import 'package:expense_app/models/expense.model.dart';
 import 'package:expense_app/services/database/app_database.dart';
-import 'package:expense_app/utils/datetimeutils.dart';
+import 'package:expense_app/utils/date_extensions.dart';
 
 class ExpenseService {
   Future<int> addExpense(Expense expense) {
     var expenseDTO = ExpenseDTO();
     expenseDTO.name = expense.name;
     expenseDTO.amount = expense.amount;
-    expenseDTO.expenseDate = DateTimeUtils.getYYYMMDDHHmmssFormat(expense.expenseDate!);
+    expenseDTO.expenseDate = expense.expenseDate!.getYYYMMDDHHmmssFormat();
     expenseDTO.categoryId = expense.categoryId;
     expenseDTO.note = expense.note;
 
@@ -20,7 +20,7 @@ class ExpenseService {
     expenseDTO.id = expense.id;
     expenseDTO.name = expense.name;
     expenseDTO.amount = expense.amount;
-    expenseDTO.expenseDate = DateTimeUtils.getYYYMMDDHHmmssFormat(expense.expenseDate!);
+    expenseDTO.expenseDate = expense.expenseDate!.getYYYMMDDHHmmssFormat();
     expenseDTO.categoryId = expense.categoryId;
     expenseDTO.note = expense.note;
 

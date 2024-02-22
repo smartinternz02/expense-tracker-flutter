@@ -1,9 +1,12 @@
+import 'package:expense_app/models/category.model.dart';
 import 'package:expense_app/models/expense.model.dart';
 import 'package:expense_app/models/viewmodels/expense_list.model.dart';
 import 'package:expense_app/screens/add_expense.dart';
+import 'package:expense_app/services/categories/categories.service.dart';
 import 'package:expense_app/services/expenses/expense.service.dart';
-import 'package:expense_app/utils/datetimeutils.dart';
+import 'package:expense_app/utils/date_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 class ExpensesListScreen extends StatefulWidget {
@@ -17,6 +20,7 @@ class ExpensesListScreen extends StatefulWidget {
 
 class ExpensesListScreenState extends State<ExpensesListScreen> {
   ExpenseService expenseService = ExpenseService();
+  ExpenseCategoryService categoryService = ExpenseCategoryService();
   List<Expense> expenses = [];
 
   late List<ExpenseListView> expenseListItems = [];
@@ -42,50 +46,56 @@ class ExpensesListScreenState extends State<ExpensesListScreen> {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: fetchExpenses,
-        child: ListView.builder(
-            itemCount: expenseListItems.length,
-            itemBuilder: (context, index) {
-              var key = expenseListItems[index].expenseDate;
-              var widgets = expenseListItems[index].expenses!.map((expense) {
-                return InkWell(
-                  onTap: () {
-                    _openEditExpense(expense);
-                  },
-                  child: ListTile(
-                    title: Text(expense.name!),
-                    subtitle: Text(expense.note ?? ''),
-                    trailing: Text(
-                      formatCurrency.format(expense.amount),
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                );
-              }).toList();
+        child: expenseListItems.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: ListView.builder(
+                    itemCount: expenseListItems.length,
+                    itemBuilder: (context, index) {
+                      var key = expenseListItems[index].expenseDate;
+                      var widgets = expenseListItems[index].expenses!.map((expense) {
+                        return InkWell(
+                          onTap: () {
+                            _openEditExpense(expense);
+                          },
+                          child: ListTile(
+                            leading: CircleAvatar(child: Icon(IconData(expense.categoryIcon!, fontFamily: 'MaterialIcons'))),
+                            title: Text(expense.name!),
+                            subtitle: Text(expense.categoryName ?? ''),
+                            trailing: Text(
+                              formatCurrency.format(expense.amount),
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        );
+                      }).toList();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: SizedBox(
-                      height: 20,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(key!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          Text('Overall: ${formatCurrency.format(expenseListItems[index].total)}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              )),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: SizedBox(
+                              height: 20,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(key!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  Text('Overall: ${formatCurrency.format(expenseListItems[index].total)}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          ...widgets
                         ],
-                      ),
-                    ),
-                  ),
-                  ...widgets
-                ],
-              );
-            }),
+                      );
+                    }),
+              )
+            : _showEmptyScreen(),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddExpenseScreen,
@@ -97,10 +107,17 @@ class ExpensesListScreenState extends State<ExpensesListScreen> {
   Future<void> fetchExpenses() async {
     expenseListItems = [];
     var expenses = await expenseService.getExpenses();
+    var categories = await categoryService.getCategories();
     if (expenses.isNotEmpty) {
       Map<String, List<Expense>> groupedExpenses = {};
       for (var expense in expenses) {
         String key = DateTimeUtils.getDayMonthDayYearFormat(expense.expenseDate!);
+        if (expense.categoryId != null) {
+          ExpenseCategory category = categories.firstWhere((c) => c.id == expense.categoryId);
+          expense.categoryName = category.name!;
+          expense.categoryIcon = category.iconPoint;
+        }
+
         if (!groupedExpenses.containsKey(key)) {
           groupedExpenses[key] = [expense];
         } else {
@@ -138,5 +155,22 @@ class ExpensesListScreenState extends State<ExpensesListScreen> {
     if (shouldRefresh != null && shouldRefresh) {
       fetchExpenses();
     }
+  }
+
+  Widget _showEmptyScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 200,
+            width: 200,
+            child: SvgPicture.asset('assets/images/no_data.svg'),
+          ),
+          const SizedBox(height: 15),
+          const Text('No expenses added', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        ],
+      ),
+    );
   }
 }

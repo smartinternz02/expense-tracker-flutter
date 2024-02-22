@@ -1,4 +1,3 @@
-import 'package:expense_app/screens/add_expense.dart';
 import 'package:expense_app/screens/categories.screen.dart';
 import 'package:expense_app/screens/expenses_list.screen.dart';
 import 'package:flutter/material.dart';
@@ -20,21 +19,25 @@ class DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense App'),
+        backgroundColor: Theme.of(context).primaryColorLight,
       ),
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        selectedFontSize: 14,
         onTap: navigateToTab,
         currentIndex: currentIndex,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: const Icon(Icons.home),
             label: 'Home',
-            activeIcon: Icon(Icons.home_filled),
+            activeIcon: const Icon(Icons.home_filled),
+            backgroundColor: Theme.of(context).highlightColor,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.category_rounded),
+            icon: const Icon(Icons.category),
             label: 'Categories',
-            activeIcon: Icon(Icons.category_rounded),
+            activeIcon: const Icon(Icons.category_rounded),
+            backgroundColor: Theme.of(context).highlightColor,
           ),
         ],
       ),

@@ -1,7 +1,6 @@
 import 'package:expense_app/models/category.model.dart';
 import 'package:expense_app/screens/add_category.screen.dart';
 import 'package:expense_app/services/categories/categories.service.dart';
-import 'package:expense_app/services/expenses/expense.service.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseCategoriesScreen extends StatefulWidget {
