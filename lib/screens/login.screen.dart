@@ -98,10 +98,6 @@ class LoginScreen extends StatelessWidget {
         password: _passwordController.text,
       );
 
-      if (await loginService.isUsernameExists(_userNameController.text)) {
-        return;
-      }
-
       if (await loginService.loginUser(user) != null) {
         var preference = await SharedPreferences.getInstance();
         preference.setBool('isLogin', true);
@@ -110,6 +106,28 @@ class LoginScreen extends StatelessWidget {
 
         if (context.mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
+        }
+      } else {
+        if (context.mounted) {
+          showDialog(
+              context: context,
+              builder: (ctx) {
+                return AlertDialog(
+                  title: const Text('Login Failure'),
+                  content: const SizedBox(
+                    width: 200,
+                    height: 50,
+                    child: Text('Invalid user credentials'),
+                  ),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Ok'))
+                  ],
+                );
+              });
         }
       }
     }

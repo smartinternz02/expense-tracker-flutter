@@ -123,6 +123,7 @@ class RegistrationScreen extends StatelessWidget {
     if (_formKey.currentState!.validate()) {
       var loginService = LoginService();
       if (await loginService.isUsernameExists(_userNameController.text)) {
+        _showAlert(context, 'Registration failed', 'User already exists');
         return;
       }
 
@@ -141,7 +142,33 @@ class RegistrationScreen extends StatelessWidget {
         if (context.mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
         }
+      } else {
+        _showAlert(context, 'Registration failed', 'Something went wrong');
       }
+    }
+  }
+
+  void _showAlert(BuildContext context, String tile, String message) {
+    if (context.mounted) {
+      showDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text('Login Failure'),
+              content: const SizedBox(
+                width: 200,
+                height: 50,
+                child: Text('Invalid user credentials'),
+              ),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Ok'))
+              ],
+            );
+          });
     }
   }
 }
